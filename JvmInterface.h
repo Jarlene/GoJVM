@@ -7,15 +7,20 @@
 */
 //
 
-#include <jni.h>
 #include <jni_md.h>
+#include <jvmti.h>
 #include <string>
 #include <memory>
 
 #ifndef GOJVM_JVMINTERFACE_H
 #define GOJVM_JVMINTERFACE_H
 
-enum MethodType{
+enum MethodType {
+    STATIC,
+    INSTANCE
+};
+
+enum MethodReturnType{
     Int,
     CHAR,
     SHORT,
@@ -29,31 +34,39 @@ enum MethodType{
     OBJECT
 } ;
 
+
+struct Param{
+    MethodType methodType;
+    MethodReturnType returnType;
+    char * methodName;
+    char * signature;
+};
+
+
 class JVMInterface {
 public:
     JVMInterface(const char* class_path);
 
-    jmethodID  getMethodID(const char* clazz, const char *name, const char *sig) ;
+    JVMInterface(const JVMInterface &jvm);
 
-    jmethodID  getStaticMethodID(const char* clazz, const char *name, const char *sig);
+    JVMInterface &on(const char* klass);
 
-    jvalue callStaticMethod(MethodType type, jmethodID methodId, ...);
+    JVMInterface &call(Param &param, ...);
 
-    jvalue callMethod(MethodType type, jmethodID methodId, ...);
-
-    jvalue callMethod(jobject object, MethodType type, jmethodID methodId, ...);
+    jvalue get();
 
     ~JVMInterface();
 
 private:
-    JNIEnv *create_jvm(JavaVM **jvm, const char *class_path) ;
+    static JNIEnv *create_jvm(JavaVM **jvm, const char *class_path) ;
 
 
 private:
-    JNIEnv *env;
-    jclass mainClass;
-    JavaVM *jvm;
-    jobject obj;
+    JNIEnv *env = NULL;
+    jclass mainClass = NULL;
+    JavaVM *jvm = NULL;
+    jobject obj = NULL;
+    jvalue res;
 };
 
 

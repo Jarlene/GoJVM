@@ -10,25 +10,43 @@
 #include <iostream>
 int main() {
 
-    JVMInterface jvm("./featureAlgo-1.0-SNAPSHOT-jar-with-dependencies.jar:./scala-library-2.10.4.jar");
-//    jmethodID  square = jvm.getStaticMethodID("square", "(I)I");
-//    jmethodID  power = jvm.getStaticMethodID("power", "(II)I");
-//    jmethodID  main = jvm.getStaticMethodID("main", "([Ljava/lang/String;)V");
-    jmethodID div = jvm.getStaticMethodID("com/didiglobal/saturn/featurealgo/CommonOp", "div", "()Lscala/Function2;");
-    if(div == NULL) {
-        std::cerr << "get static method  error " << std::endl;
-        return 1;
-    }
+    JVMInterface jvm("./:./featureAlgo-1.0-SNAPSHOT-jar-with-dependencies.jar:./scala-library-2.10.4.jar:../unsafe-mock-8.92.1.jar");
 
-//    jvm.callStaticMethod(MethodType::VOID, main);
-    jvalue  res = jvm.callStaticMethod(MethodType::OBJECT, div);
-    div = jvm.getMethodID("scala/Function2", "apply", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-    jdouble  a = 6.0;
-    jdouble  b = 4.0;
-    res = jvm.callMethod(res.l, MethodType::OBJECT, div, a, b);
-//    std::cout << "res: " << res.i << std::endl;
-//    res = jvm.callStaticMethod(MethodType::Int, square, 2);
-//    std::cout << "res: " << res.l << std::endl;
+    Param p;
+    p.methodType = MethodType::STATIC;
+    p.returnType = MethodReturnType::Int;
+    p.methodName = "square";
+    p.signature = "(I)I";
 
+    jvalue res = jvm.on("helloWorld").
+            call(p, 3).
+            get();
+    std::cout << "res: " << res.i << std::endl;
+    p.methodName = "power";
+    p.signature = "(II)I";
+    res = jvm.call(p, 3,4).
+            get();
+    std::cout << "res: " << res.i << std::endl;
+    p.returnType = MethodReturnType::VOID;
+    p.methodName = "main";
+    p.signature = "([Ljava/lang/String;)V";
+    jvm.call(p);
+
+
+    double  a = 6.0;
+    double  b = 4.0;
+    p.returnType = MethodReturnType::OBJECT;
+    p.methodName = "div";
+    p.signature = "()Lscala/Function2;";
+    jvm.on("com/didiglobal/saturn/featurealgo/CommonOp").
+    call(p)
+    .on("scala/Function2");
+
+    p.methodType = MethodType::INSTANCE;
+    p.methodName = "apply";
+    p.signature = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
+    jvm.call(p, a, b)
+    .get();
+    std::cout << "res: " << res.l << std::endl;
     return 0;
 }
