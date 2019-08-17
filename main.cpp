@@ -10,7 +10,7 @@
 #include <iostream>
 int main() {
 
-    JVMInterface jvm("./:./featureAlgo-1.0-SNAPSHOT-jar-with-dependencies.jar:./scala-library-2.10.4.jar:../unsafe-mock-8.92.1.jar");
+    JVMInterface jvm("../:../featureAlgo-1.0-SNAPSHOT-jar-with-dependencies.jar:../scala-library-2.10.4.jar:../unsafe-mock-8.92.1.jar");
 
     Param p;
     p.methodType = MethodType::STATIC;
