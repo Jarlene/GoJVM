@@ -140,14 +140,14 @@ JVMInterface &JVMInterface::on(const char *klass) {
     return *this;
 }
 
-JVMInterface &JVMInterface::call(Param &param, ...) {
+JVMInterface &JVMInterface::call(Param param, ...) {
     jmethodID method = NULL;
     va_list args;
     va_start(args, param);
     switch (param.methodType) {
         case STATIC :
             method = env->GetStaticMethodID(mainClass, param.methodName, param.signature);
-            CALL_STATIC_METHOD(env, mainClass, method, param.methodType, res, args)
+            CALL_STATIC_METHOD(env, mainClass, method, param.returnType, res, args)
             break;
         case INSTANCE:
             method = env->GetMethodID(mainClass, param.methodName, param.signature);

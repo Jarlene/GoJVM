@@ -51,7 +51,7 @@ public:
 
     JVMInterface &on(const char* klass);
 
-    JVMInterface &call(Param &param, ...);
+    JVMInterface &call(Param param, ...);
 
     jvalue get();
 
