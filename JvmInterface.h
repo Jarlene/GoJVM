@@ -51,11 +51,21 @@ public:
 
     JVMInterface &on(const char* klass);
 
+    JVMInterface &on(jobject obj);
+
     JVMInterface &call(Param param, ...);
 
     jvalue get();
 
     ~JVMInterface();
+
+    jstring newString(const char* str);
+
+    jdoubleArray newDouble(int cnt,  ...);
+
+    void deleteString(jstring str);
+
+    void deleteDouble(jdoubleArray array);
 
 private:
     static JNIEnv *create_jvm(JavaVM **jvm, const char *class_path) ;

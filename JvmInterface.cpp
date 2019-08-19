@@ -91,7 +91,7 @@ JNIEnv *JVMInterface::create_jvm(JavaVM **jvm, const char *class_path) {
     JavaVMOption options;
     args.version = JNI_VERSION_1_6;
     args.nOptions = 1;
-    std::string subfix = "-Djava.class.path=/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/deploy.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/cldrdata.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/dnsns.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/jaccess.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/jfxrt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/localedata.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/nashorn.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/sunec.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/sunjce_provider.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/sunpkcs11.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/ext/zipfs.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/javaws.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/jfr.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/jfxswt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/management-agent.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/plugin.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/ant-javafx.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/dt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/javafx-mx.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/jconsole.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/packager.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/sa-jdi.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_40.jdk/Contents/Home/lib/tools.jar:";
+    std::string subfix = "-Djava.class.path=";
     auto classPath =  subfix +  std::string(class_path);
     options.optionString = const_cast<char *>(classPath.c_str());
     args.options = &options;
@@ -136,6 +136,10 @@ JVMInterface::JVMInterface(const JVMInterface &jvm) {
 }
 
 JVMInterface &JVMInterface::on(const char *klass) {
+    if (mainClass != NULL) {
+        env->DeleteGlobalRef(mainClass);
+        mainClass = NULL;
+    }
     mainClass = this->env->FindClass(klass);
     return *this;
 }
@@ -166,6 +170,44 @@ jvalue JVMInterface::get() {
     return res;
 }
 
+JVMInterface &JVMInterface::on(jobject obj) {
+    if (this->obj != NULL) {
+        env->DeleteGlobalRef(obj);
+        this->obj = NULL;
+    }
+    this->mainClass = env->GetObjectClass(obj);
+    this->obj = obj;
+    return *this;
+}
+
+jstring JVMInterface::newString(const char *str) {
+    return  env->NewStringUTF(str);
+}
+
+void JVMInterface::deleteString(jstring str) {
+        if (str != NULL) {
+            env->DeleteLocalRef(str);
+        }
+}
+
+jdoubleArray JVMInterface::newDouble(int cnt, ...) {
+    jdoubleArray  res;
+    va_list args;
+    va_start(args, cnt);
+    res = env->NewDoubleArray(cnt);
+    for (int i = 0; i < cnt; ++i) {
+        const double re = va_arg(args, double);
+        env->SetDoubleArrayRegion(res, i, 1, &re);
+    }
+    va_end(args);
+    return res;
+}
+
+void JVMInterface::deleteDouble(jdoubleArray array) {
+    if (array != NULL) {
+        env->DeleteLocalRef(array);
+    }
+}
 
 
 
